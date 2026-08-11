@@ -199,3 +199,4 @@ cython_debug/
 
 #arquivos para ignorar
 anexos
+accessToken.json
