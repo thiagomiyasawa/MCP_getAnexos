@@ -1,11 +1,12 @@
+import base64
 import os
 from datetime import datetime, timedelta
 
 import requests
 from dotenv import load_dotenv
-from generate_token import get_access_token
 from markdownify import markdownify as md
-import base64
+
+from generate_token import get_access_token
 
 
 def read_mail(access_token: str, dataInicial: datetime, dataFinal: datetime):
@@ -48,7 +49,7 @@ def read_mail(access_token: str, dataInicial: datetime, dataFinal: datetime):
             body_type = body.get("contentType", "text")
             body_content = body.get("content", "(E-mail vazio)")
             if body_type == "html":
-                content = markdown_texto = md(body_content)
+                content = md(body_content)
             else:
                 content = body_content
             result = {
@@ -65,7 +66,7 @@ def read_mail(access_token: str, dataInicial: datetime, dataFinal: datetime):
     return None
 
 
-def get_attachments(access_token: str, id: str, path: str):
+def get_attachments(access_token: str, id: str):
     headers = {
         # Garanta que o 'access_token' aqui seja estritamente a String do Token
         "Authorization": f"Bearer {access_token}",
@@ -76,7 +77,7 @@ def get_attachments(access_token: str, id: str, path: str):
     if response.status_code == 200:
         anexos = response.json().get("value", [])
         for anexo in anexos:
-            anexoPath = f"path/{anexo['name']}"
+            anexoPath = f"anexos/{anexo['name']}"
             with open(anexoPath, "wb") as f:
                 f.write(base64.b64decode(anexo["contentBytes"]))
 
@@ -113,6 +114,7 @@ if __name__ == "__main__":
         fim = datetime.today()
         inicio = datetime.today() - timedelta(days=1)
         emails = read_mail(token_response["access_token"], inicio, fim)
+        print(emails)
         for email in emails:
             if email["temAnexo"]:
                 get_attachments(token_response["access_token"], email["id"])
